@@ -3,12 +3,8 @@ import { useEffect, useState } from "react";
 import {
     db,
     collection,
-    serverTimestamp,
-    addDoc,
-    orderBy,
     onSnapshot,
     query,
-    getDocs,
 } from './firebase';
 import "../App.css"
 
