@@ -1,12 +1,36 @@
 import { Datepicker, Table } from "flowbite-react";
-import { useState } from "react";
-import { VehicleData } from "../constants/VehicleData";
+import { useEffect, useState } from "react";
+import {
+    db,
+    collection,
+    serverTimestamp,
+    addDoc,
+    orderBy,
+    onSnapshot,
+    query,
+    getDocs,
+} from './firebase';
 import "../App.css"
 
 export const ComponentBody = () => {
     const [generateReport, setGenerateReport] = useState(false);
     const [fetchData, setFetchData] = useState(false);
     const [downloadButton, enableDownloadButton] = useState(false);
+    const [vehicleData, setVehicleData] = useState([])
+
+    const colRef = collection(db, 'VehicleData');
+    const q = query(colRef);
+
+    useEffect(() => {
+        onSnapshot(q, (snapshot) => {
+            console.log(snapshot.docs);
+            setVehicleData(
+                snapshot.docs.map((doc) => ({
+                    data: doc.data()
+                }))
+            );
+        });
+    }, []);
 
     function handleReportClick() {
         setGenerateReport(true);
@@ -138,16 +162,16 @@ export const ComponentBody = () => {
                             </Table.Head>
                         }
                         {fetchData &&
-                            VehicleData.map((vehicle) => (
+                            vehicleData.map(({ data: { licensePlate, make, VIN, model, type, date, milesDriven } }) => (
                                 <Table.Body className="text-black bg-slate-400">
                                     <Table.Row>
-                                        <Table.Cell>{vehicle.licensePlate}</Table.Cell>
-                                        <Table.Cell>{vehicle.make}</Table.Cell>
-                                        <Table.Cell>{vehicle.VIN}</Table.Cell>
-                                        <Table.Cell>{vehicle.model}</Table.Cell>
-                                        <Table.Cell>{vehicle.type}</Table.Cell>
-                                        <Table.Cell>{vehicle.date}</Table.Cell>
-                                        <Table.Cell>{vehicle.milesDriven}</Table.Cell>
+                                        <Table.Cell>{licensePlate}</Table.Cell>
+                                        <Table.Cell>{make}</Table.Cell>
+                                        <Table.Cell>{VIN}</Table.Cell>
+                                        <Table.Cell>{model}</Table.Cell>
+                                        <Table.Cell>{type}</Table.Cell>
+                                        <Table.Cell>{date}</Table.Cell>
+                                        <Table.Cell>{milesDriven}</Table.Cell>
                                     </Table.Row>
                                 </Table.Body>
                             ))
