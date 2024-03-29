@@ -19,9 +19,9 @@ export const ComponentBody = () => {
 
     useEffect(() => {
         onSnapshot(q, (snapshot) => {
-            console.log(snapshot.docs);
             setVehicleData(
                 snapshot.docs.map((doc) => ({
+                    id: doc.id,
                     data: doc.data()
                 }))
             );
