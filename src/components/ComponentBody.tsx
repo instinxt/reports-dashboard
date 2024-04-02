@@ -1,12 +1,15 @@
 import { Datepicker, Table } from "flowbite-react";
 import { useEffect, useState } from "react";
+import React from "react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
+import { validFilters } from "../utils/utility";
 import {
     db,
     collection,
-    onSnapshot,
     query,
-} from './firebase';
+} from "../firebaseConfig/firebase";
+import { dbquery } from "../firebaseConfig/dbqueries";
+import toast from "react-hot-toast";
 
 export const ComponentBody = () => {
     const [generateReport, setGenerateReport] = useState(false);
@@ -17,43 +20,66 @@ export const ComponentBody = () => {
     const [endDate, setEndDate] = useState(null);
     const [reportOption, setReportOption] = useState("");
     const [Frequency, setFrequency] = useState("");
+    const [reportOptions, setReportOptions]: [Set<string>, React.Dispatch<React.SetStateAction<any>>] = React.useState(new Set(["Report"]));
+    const [frequencyOption, setFrequencyOption]: [Set<string>, React.Dispatch<React.SetStateAction<any>>] = React.useState(new Set(["Frequency"]));
 
+    const refreshUI = () => {
+        setGenerateReport(false);
+        setFetchData(false);
+        enableDownloadButton(false);
+        setReportOptions(new Set(["Report"]));
+        setReportOption("");
+        setFrequencyOption(new Set(["Frequency"]));
+    }
 
     const handleStartDateChange = (date) => {
         setStartDate(date);
-        console.log('Selected start date:', date);
     };
 
     const handleEndDateChange = (date) => {
         setEndDate(date);
-        console.log('Selected end date:', date);
     };
 
     const handleReportSelect = (option) => {
         setReportOption(option)
-        console.log('Selected Option for Report', option);
     }
+
+    const selectedReportOption = React.useMemo(
+        () => Array.from(reportOptions).join(", ").replace("_", " "), [reportOptions]
+    );
+
+    const selectedFrequencyOption = React.useMemo(
+        () => Array.from(frequencyOption).join(", ").replace("_", " "), [frequencyOption]
+    );
 
     const handleFrequencySelect = (option) => {
         setFrequency(option)
-        console.log('Selected Option for Frequency', option);
     }
 
     const colRef = collection(db, 'VehicleData');
     const q = query(colRef);
 
     useEffect(() => {
-        onSnapshot(q, (snapshot) => {
-            setVehicleData(
-                snapshot.docs.map((doc) => ({
-                    id: doc.id,
-                    data: doc.data()
-                }))
-            );
-        });
-    }, []);
+        const fetchData = async () => {
+            const data = await dbquery(Frequency, startDate, endDate);
+            setVehicleData(data);
+        };
+
+        fetchData();
+    }, [startDate]);
 
     function handleReportClick() {
+        if (!validFilters(reportOption, Frequency, startDate, endDate)) {
+            refreshUI();
+            return;
+        }
+
+        if (vehicleData.length === 0) {
+            toast.error("No Data found for the filters", { duration: 3000 });
+            refreshUI();
+            return;
+        }
+
         setGenerateReport(true);
         enableDownloadButton(true);
         setFetchData(true);
@@ -66,17 +92,17 @@ export const ComponentBody = () => {
                     Reports
                 </div>
                 <div id="profileSection" className="flex object-contain  p-2 items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 mr-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
                     </svg>
 
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6 mr-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
 
                     <span>Username</span>
 
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6 ml-2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                     </svg>
                 </div>
@@ -85,19 +111,24 @@ export const ComponentBody = () => {
             <div id="filter" className="flex flex-row text-white p-2 border-b-1 border-t-1 mb-4 justify-between items-center">
                 <div id="reportsFilter" className="flex flex-row p-2 mb-2">
 
-                    {/* Reports Dropdown */}
+                    {/* Report Dropdown */}
                     <Dropdown>
                         <DropdownTrigger>
                             <Button
                                 variant="bordered"
                                 className="text-white w-48 mr-5 items-center font-bold text-md"
                             >
-                                Report
+                                {selectedReportOption}
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu
+                            aria-label="Single selection example"
+                            variant="flat"
+                            disallowEmptySelection
+                            selectionMode="single"
+                            selectedKeys={reportOptions}
+                            onSelectionChange={setReportOptions}
                             onAction={handleReportSelect}
-                            aria-label="Action event example"
                         >
                             <DropdownItem key="Total Miles Driven">Total Miles Driven</DropdownItem>
                             <DropdownItem key="Energy Consumption">Energy Consumption</DropdownItem>
@@ -112,11 +143,16 @@ export const ComponentBody = () => {
                                 variant="bordered"
                                 className="text-white w-48 mr-5 items-center font-bold text-md"
                             >
-                                Frequency
+                                {selectedFrequencyOption}
                             </Button>
                         </DropdownTrigger>
                         <DropdownMenu
-                            aria-label="Action event example"
+                            aria-label="Single selection example"
+                            variant="flat"
+                            disallowEmptySelection
+                            selectionMode="single"
+                            selectedKeys={selectedFrequencyOption}
+                            onSelectionChange={setFrequencyOption}
                             onAction={handleFrequencySelect}
                         >
                             <DropdownItem key="Daily">Daily</DropdownItem>
@@ -126,19 +162,34 @@ export const ComponentBody = () => {
                         </DropdownMenu>
                     </Dropdown>
 
-
                     {/* Date Range Picker */}
                     <div className="flex flex-row items-center w-96">
-                        <Datepicker className="mr-2" onSelectedDateChanged={handleStartDateChange} />
+                        <Datepicker
+                            className="mr-2"
+                            onSelectedDateChanged={handleStartDateChange}
+                            title="Start Date"
+                        />
                         <span>to</span>
-                        <Datepicker className="ml-2" onSelectedDateChanged={handleEndDateChange} />
+                        <Datepicker
+                            className="ml-2"
+                            onSelectedDateChanged={handleEndDateChange}
+                            title="End Date"
+                            maxDate={new Date()}
+                        />
                     </div>
 
                 </div>
                 {
                     downloadButton ?
                         (
-                            <div className="flex flex-row">
+                            <div id="postReportSection" className="flex flex-row items-center">
+                                <div id="refreshUI" className="mr-3">
+                                    <button type="button" onClick={refreshUI} className="flex flex-row border-2 items-center text-white bg-black hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-full p-2 text-center mb-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                        </svg>
+                                    </button>
+                                </div>
                                 <div id="downloadCSV" className="p-2 flex flex-row">
                                     <button type="button" className="flex flex-row border-2 items-center text-white bg-black hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-5 py-2.5 text-center mb-2">
                                         Download CSV
@@ -180,16 +231,16 @@ export const ComponentBody = () => {
                             </Table.Head>
                         }
                         {fetchData &&
-                            vehicleData.map(({ data: { licensePlate, make, VIN, model, type, date, milesDriven } }) => (
+                            vehicleData.flat().map(({ data: { licensePlate, make, vin, model, type, date, milesDriven } }) => (
                                 <Table.Body className="text-white bg-black">
-                                    <Table.Row>
-                                        <Table.Cell className="border-b-1">{licensePlate}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{make}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{VIN}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{model}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{type}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{date}</Table.Cell>
-                                        <Table.Cell className="border-b-1">{milesDriven}</Table.Cell>
+                                    <Table.Row className="border-b-1">
+                                        <Table.Cell>{licensePlate}</Table.Cell>
+                                        <Table.Cell>{make}</Table.Cell>
+                                        <Table.Cell>{vin}</Table.Cell>
+                                        <Table.Cell>{model}</Table.Cell>
+                                        <Table.Cell>{type}</Table.Cell>
+                                        <Table.Cell>{date}</Table.Cell>
+                                        <Table.Cell>{milesDriven}</Table.Cell>
                                     </Table.Row>
                                 </Table.Body>
                             ))
