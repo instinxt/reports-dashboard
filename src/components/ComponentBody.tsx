@@ -3,11 +3,6 @@ import { useEffect, useState } from "react";
 import React from "react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
 import { validFilters } from "../utils/utility";
-import {
-    db,
-    collection,
-    query,
-} from "../firebaseConfig/firebase";
 import { dbquery } from "../firebaseConfig/dbqueries";
 import toast from "react-hot-toast";
 
@@ -55,9 +50,6 @@ export const ComponentBody = () => {
     const handleFrequencySelect = (option) => {
         setFrequency(option)
     }
-
-    const colRef = collection(db, 'VehicleData');
-    const q = query(colRef);
 
     useEffect(() => {
         const fetchData = async () => {
