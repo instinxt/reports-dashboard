@@ -4,9 +4,9 @@ import {  db,
     query, } from "./firebase";
 import moment from "moment";
 
-	export const dbquery = async (Frequency, startDate, endDate) => {
-	
-		let resultData = [];
+export const dbquery = async (Frequency, startDate, endDate) => {		
+		
+	let resultData = [];
 
 		endDate = setEndDate(Frequency, startDate, endDate);
 		

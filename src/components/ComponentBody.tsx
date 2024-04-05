@@ -1,5 +1,5 @@
 import { Datepicker, Table } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@nextui-org/react";
 import { validFilters } from "../utils/utility";
@@ -11,12 +11,15 @@ export const ComponentBody = () => {
     const [fetchData, setFetchData] = useState(false);
     const [downloadButton, enableDownloadButton] = useState(false);
     const [vehicleData, setVehicleData] = useState([])
-    const [startDate, setStartDate] = useState(null);
-    const [endDate, setEndDate] = useState(null);
+    const [startDate, setStartDate] = useState(new Date());
+    const startDatepickerRef = useRef(null);
+    const endDatepickerRef = useRef(null);
+    const [endDate, setEndDate] = useState(new Date());
     const [reportOption, setReportOption] = useState("");
     const [Frequency, setFrequency] = useState("");
     const [reportOptions, setReportOptions]: [Set<string>, React.Dispatch<React.SetStateAction<any>>] = React.useState(new Set(["Report"]));
     const [frequencyOption, setFrequencyOption]: [Set<string>, React.Dispatch<React.SetStateAction<any>>] = React.useState(new Set(["Frequency"]));
+
 
     const refreshUI = () => {
         setGenerateReport(false);
@@ -25,6 +28,11 @@ export const ComponentBody = () => {
         setReportOptions(new Set(["Report"]));
         setReportOption("");
         setFrequencyOption(new Set(["Frequency"]));
+        setFrequency("");
+        setStartDate(new Date());
+        setEndDate(new Date());
+        startDatepickerRef.current.clear();
+        endDatepickerRef.current.clear();
     }
 
     const handleStartDateChange = (date) => {
@@ -158,12 +166,14 @@ export const ComponentBody = () => {
                     <div className="flex flex-row items-center w-96">
                         <Datepicker
                             className="mr-2"
+                            ref={startDatepickerRef}
                             onSelectedDateChanged={handleStartDateChange}
                             title="Start Date"
                         />
                         <span>to</span>
                         <Datepicker
                             className="ml-2"
+                            ref={endDatepickerRef}
                             onSelectedDateChanged={handleEndDateChange}
                             title="End Date"
                             maxDate={new Date()}
@@ -223,7 +233,7 @@ export const ComponentBody = () => {
                             </Table.Head>
                         }
                         {fetchData &&
-                            vehicleData.flat().map(({ data: { licensePlate, make, vin, model, type, date, milesDriven } }) => (
+                            vehicleData.map(({ data: { licensePlate, make, vin, model, type, date, milesDriven } }) => (
                                 <Table.Body className="text-white bg-black">
                                     <Table.Row className="border-b-1">
                                         <Table.Cell>{licensePlate}</Table.Cell>
