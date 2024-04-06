@@ -5,12 +5,13 @@ import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@
 import { validFilters } from "../utils/utility";
 import { dbquery } from "../firebaseConfig/dbqueries";
 import toast from "react-hot-toast";
+import { ReportTable } from "./ReportTable";
 
 export const ComponentBody = () => {
     const [generateReport, setGenerateReport] = useState(false);
     const [fetchData, setFetchData] = useState(false);
     const [downloadButton, enableDownloadButton] = useState(false);
-    const [vehicleData, setVehicleData] = useState([])
+    const [vehicleData, setVehicleData] = useState({})
     const [startDate, setStartDate] = useState(new Date());
     const startDatepickerRef = useRef(null);
     const endDatepickerRef = useRef(null);
@@ -74,7 +75,7 @@ export const ComponentBody = () => {
             return;
         }
 
-        if (vehicleData.length === 0) {
+        if (Object.keys(vehicleData).length === 0) {
             toast.error("No Data found for the filters", { duration: 3000 });
             refreshUI();
             return;
@@ -85,8 +86,18 @@ export const ComponentBody = () => {
         setFetchData(true);
     }
 
+    function frequencyFill() {
+        if (Frequency === 'Daily')
+            return "Date";
+        else if (Frequency === 'Weekly')
+            return "Week";
+        else if (Frequency === 'Monthly')
+            return "Month";
+        else
+            return "Year";
+    }
     return (
-        < div id="componentBody" className={generateReport ? "h-full flex flex-col bg-black p-4 xl:ml-60" : "h-screen flex flex-col bg-black p-4 xl:ml-60"} >
+        < div id="componentBody" className={(generateReport && Object.keys(vehicleData).length > 10) ? "h-full flex flex-col bg-black p-4 xl:ml-60" : "h-screen flex flex-col bg-black p-4 xl:ml-60"} >
             <div id="componentHeader" className="flex flex-row text-white p-4 mb-4 justify-between">
                 <div id="componentName" className=" p-2 mb-2 text-3xl">
                     Reports
@@ -224,28 +235,21 @@ export const ComponentBody = () => {
                         {generateReport &&
                             <Table.Head className="text-white">
                                 <Table.HeadCell className="bg-[#1C1C26]">License Plate</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">Make</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">VIN</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">Model</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">Type</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">Date</Table.HeadCell>
-                                <Table.HeadCell className="bg-[#1C1C26]">Miles Driven</Table.HeadCell>
+                                <Table.HeadCell className="bg-[#1C1C26]">{frequencyFill()}</Table.HeadCell>
+                                <Table.HeadCell className="bg-[#1C1C26]">Total Miles Driven</Table.HeadCell>
                             </Table.Head>
                         }
                         {fetchData &&
-                            vehicleData.map(({ data: { licensePlate, make, vin, model, type, date, milesDriven } }) => (
-                                <Table.Body className="text-white bg-black">
-                                    <Table.Row className="border-b-1">
-                                        <Table.Cell>{licensePlate}</Table.Cell>
-                                        <Table.Cell>{make}</Table.Cell>
-                                        <Table.Cell>{vin}</Table.Cell>
-                                        <Table.Cell>{model}</Table.Cell>
-                                        <Table.Cell>{type}</Table.Cell>
-                                        <Table.Cell>{date}</Table.Cell>
-                                        <Table.Cell>{milesDriven}</Table.Cell>
-                                    </Table.Row>
-                                </Table.Body>
-                            ))
+                            // vehicleData.map(({ data: { licensePlate, date, milesDriven } }) => (
+                            //     <Table.Body className="text-white bg-black">
+                            //         <Table.Row className="border-b-1">
+                            //             <Table.Cell>{licensePlate}</Table.Cell>
+                            //             <Table.Cell>{date}</Table.Cell>
+                            //             <Table.Cell>{milesDriven}</Table.Cell>
+                            //         </Table.Row>
+                            //     </Table.Body>
+                            // ))
+                            <ReportTable data={vehicleData} />
                         }
                     </Table>
                 </div>
