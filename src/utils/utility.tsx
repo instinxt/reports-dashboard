@@ -35,12 +35,14 @@ const validFrequency = (Frequency) => {
     if (Frequency == "") {
         toast.error("Select a frequency", { duration: 3000 });
         return false;
+    } else if (Frequency == "Daily") {
+        toast.success("Daily report generated", { duration: 3000 });
     } else if (Frequency == "Weekly") {
-        toast.success("Only 1 Week from start date is supported", { duration: 3000 });
+        toast.success("Weekly cumulative report generated", { duration: 3000 });
     } else if (Frequency == "Monthly") {
-        toast.success("Only 1 Month from start date is supported", { duration: 3000 });
+        toast.success("Monthly combined report generated", { duration: 3000 });
     } else if (Frequency == "Yearly") {
-        toast.success("Only 1 Year from start date is supported", { duration: 3000 });
+        toast.success("Yearly combined report generated", { duration: 3000 });
     }
     return true;
 }

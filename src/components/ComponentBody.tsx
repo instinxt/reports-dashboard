@@ -67,7 +67,7 @@ export const ComponentBody = () => {
         };
 
         fetchData();
-    }, [startDate]);
+    }, [endDate]);
 
     function handleReportClick() {
         if (!validFilters(reportOption, Frequency, startDate, endDate)) {
