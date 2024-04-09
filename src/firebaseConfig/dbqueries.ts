@@ -52,6 +52,10 @@ const generateDailyReport = (resultData, startDate, endDate) => {
     // Create a map to store the daily report for each license plate
     const reportMap = new Map();
 
+    //Range init
+    let startDateObj = moment.utc(startDate, 'YYYY/MM/DD');
+    let endDateObj = moment.utc(endDate, 'YYYY/MM/DD').add(1, 'day');
+
     // Iterate over the resultData only once
     for (const entry of resultData) {
         const { data: { licensePlate, date, milesDriven } } = entry;
@@ -59,7 +63,7 @@ const generateDailyReport = (resultData, startDate, endDate) => {
 		let dateStr = moment.utc(date, 'YYYY/MM/DD');
 
         // Check if the date is within the specified range
-        if (moment(dateStr).isBetween(startDate, endDate, 'day', '[]')) {
+        if (moment(dateStr).isBetween(startDateObj, endDateObj, 'day', '[]')) {
             const key = licensePlate + date; // Create a unique key for each license plate and date
 
             // Update the reportMap with miles driven for each license plate and date
@@ -82,19 +86,24 @@ const generateDailyReport = (resultData, startDate, endDate) => {
 function generateWeeklyReport(resultData, startDate, endDate) {
     const weeklyReport = {};
 
-    const currentDate = moment(startDate);
-    const endDateObj = moment(endDate);
+    const currentDate = moment.utc(startDate, 'YYYY/MM/DD');
+    const endDateObj = moment.utc(endDate, 'YYYY/MM/DD').add(1, 'day');
 
     const transformedData = resultData.map(({ data }) => data);
+    console.log(transformedData);
 
     while (currentDate.isSameOrBefore(endDateObj, 'week')) {
+        console.log(currentDate, "This is current date value")
         const weekStart = currentDate.startOf('week').format('YYYY/MM/DD');
-        const weekEnd = currentDate.endOf('week').format('YYYY/MM/DD');
+
+        //Handling edge case
+        let weekEnd = currentDate.endOf('week').add(1, 'day').format('YYYY/MM/DD');
+
         const week = `${weekStart} - ${weekEnd}`;
 
         const filteredData = transformedData.filter(entry => {
             const dateStr = moment.utc(entry.date, 'YYYY/MM/DD');
-            return dateStr.isBetween(weekStart, weekEnd, null, '[]');
+            return moment(dateStr).isBetween(weekStart, weekEnd, null, '[]');
         });
 
         filteredData.forEach(entry => {
@@ -102,7 +111,7 @@ function generateWeeklyReport(resultData, startDate, endDate) {
             weeklyReport[entry.licensePlate][week] = (weeklyReport[entry.licensePlate][week] || 0) + entry.milesDriven;
         });
 
-        currentDate.add(1, 'week');
+        moment(currentDate).add(1, 'week');
     }
 
     return weeklyReport;
