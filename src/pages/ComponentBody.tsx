@@ -67,7 +67,7 @@ export const ComponentBody = () => {
         };
 
         fetchData();
-    }, [endDate]);
+    }, [startDate, endDate]);
 
     function handleReportClick() {
         if (!validFilters(reportOption, Frequency, startDate, endDate)) {
@@ -255,5 +255,6 @@ export const ComponentBody = () => {
                 </div>
             </div>
         </div >
+
     )
 };

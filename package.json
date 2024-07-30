@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@mui/material": "^5.15.14",
+    "@nextui-org/modal": "^2.0.39",
     "@nextui-org/react": "^2.2.10",
     "@types/firebase": "^3.2.1",
     "firebase": "^10.9.0",

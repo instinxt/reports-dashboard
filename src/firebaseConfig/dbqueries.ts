@@ -28,7 +28,8 @@ export const dbquery = async (Frequency, startDate, endDate) => {
 		
 		//process Data client side
 		const processedData = generateReport(Frequency, resultData, startDate, endDate);
-		
+
+	
 		return processedData;
 	};
 
@@ -90,10 +91,8 @@ function generateWeeklyReport(resultData, startDate, endDate) {
     const endDateObj = moment.utc(endDate, 'YYYY/MM/DD').add(1, 'day');
 
     const transformedData = resultData.map(({ data }) => data);
-    console.log(transformedData);
 
     while (currentDate.isSameOrBefore(endDateObj, 'week')) {
-        console.log(currentDate, "This is current date value")
         const weekStart = currentDate.startOf('week').format('YYYY/MM/DD');
 
         //Handling edge case
