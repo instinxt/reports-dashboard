@@ -21,11 +21,6 @@ function App() {
 
 		<>
 			<div id='app' className='flex'>
-				<Modal open={showModal} onClose={closeModal}>
-					<div className='p-[10px] w-[60%] flex justify-center'>
-						Please Select Start Date before 1 Feb 2021, only Limited data is available for demo purpose
-					</div>
-				</Modal>
 
 				<div className='flex-none'>
 					<Sidebar />
@@ -34,6 +29,11 @@ function App() {
 					<ComponentBody />
 
 				</div>
+				<Modal open={showModal} onClose={closeModal}>
+					<div className='p-[10px] w-[60%] flex justify-center'>
+						Please Select Start Date before 1 Feb 2021, only Limited data is available for demo purpose
+					</div>
+				</Modal>
 			</div>
 		</>
 	)
